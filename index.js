@@ -38,7 +38,7 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 })();
 
 // 送信するメッセージ
-const KURA_MESSAGE = `# @everyone🔥💀 クラ軍国万歳 🙌 💀🔥\nhttps://discord.gg/ysJkMZQn`;
+const KURA_MESSAGE = `# @everyone🔥💀 クラ軍国万歳 🙌 💀🔥https://discord.gg/2H5SPMDd`;
 
 client.once('ready', () => console.log(`ログイン完了: ${client.user.tag}`));
 
