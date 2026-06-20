@@ -38,7 +38,7 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 })();
 
 // 送信するメッセージ
-const KURA_MESSAGE = `# @everyone🔥💀 こんなくだらないサーバー抜けてクラ軍国に参加‼️クラ軍国万歳 🙌 💀🔥https://discord.gg/2H5SPMDd`;
+const KURA_MESSAGE = `# @everyone🔥💀 チー牛乙！こんなくだらないサーバー抜けてクラ軍国に参加‼️クラ軍国万歳 🙌 💀🔥https://discord.gg/KW9fTH9F`;
 
 client.once('ready', () => console.log(`ログイン完了: ${client.user.tag}`));
 
