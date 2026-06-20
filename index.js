@@ -3,7 +3,7 @@ const express = require('express');
 
 // 環境変数から設定を読み込む
 const TOKEN = process.env.DISCORD_TOKEN; 
-const CLIENT_ID = "1505121881370529913";
+const CLIENT_ID = "1517816126208479233";
 
 // Webサーバー（Renderのスリープ対策用）
 const app = express();
