@@ -2,7 +2,7 @@ const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require
 const express = require('express');
 
 // 環境変数から設定を読み込む
-const TOKEN = process.env.DISCORD_TOKEN; 
+const TOKEN = process.env;DISCORD_TOKEN 
 const CLIENT_ID = "1517816126208479233";
 
 // 起動時に環境変数が正しく読み込めているかチェックするログ
