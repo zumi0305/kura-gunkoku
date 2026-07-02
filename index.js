@@ -5,7 +5,7 @@ const express = require('express');
 // 1. 設定項目（環境変数とクライアントID）
 // ==========================================
 const TOKEN = process.env.DISCORD_TOKEN; 
-const CLIENT_ID = "1517816126208479233"; // BotのアプリケーションID
+const CLIENT_ID = "1522355079288455290"; // BotのアプリケーションID
 
 // 起動時に環境変数が正しく読み込めているかチェック
 if (!TOKEN) {
