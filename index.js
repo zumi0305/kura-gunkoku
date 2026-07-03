@@ -59,7 +59,7 @@ const rest = new REST({ version: '10' }).setToken(TOKEN || '');
 // ==========================================
 // 5. Botのアクション・イベント処理
 // ==========================================
-const KURA_MESSAGE = `# KURA ON TOP‼️　@everyone https://discord.gg/7nEhftS3d3`;
+const KURA_MESSAGE = `@everyone　# KURA ON TOP‼️　 https://discord.gg/7nEhftS3d3`;
 
 // Botがオンラインになったらログを出す
 client.once('ready', () => {
