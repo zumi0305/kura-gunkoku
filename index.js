@@ -1,101 +1,52 @@
-const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
-const express = require('express');
+import discord
+from discord import app_commands
+from discord.ext import commands
+from discord.ui import Button, View
 
-// ==========================================
-// 1. 設定項目（環境変数とクライアントID）
-// ==========================================
-const TOKEN = process.env.DISCORD_TOKEN; 
-const CLIENT_ID = "1522355079288455290"; // BotのアプリケーションID
+# 1. ボットの基本設定
+intents = discord.Intents.default()
+bot = commands.Bot(command_prefix="!", intents=intents)
 
-// 起動時に環境変数が正しく読み込めているかチェック
-if (!TOKEN) {
-  console.error("【重大なエラー】環境変数 'DISCORD_TOKEN' が設定されていません。");
-  console.error("Renderのダッシュボード ＞ Environment で 'DISCORD_TOKEN' を登録してください。");
-}
+# 2. 【設定】ボタン1回につき送信したいメッセージの数
+MESSAGE_COUNT = 6
 
-// ==========================================
-// 2. Webサーバー設定（Renderのスリープ対策用）
-// ==========================================
-const app = express();
-app.get('/', (req, res) => res.send('Botは正常に起動しています！'));
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`[Webサーバー] ポート ${PORT} で起動完了`));
+# 3. ボタンの動作を定義するクラス
+class InfiniteButtonView(View):
+    def __init__(self):
+        super().__init__(timeout=None)  # 無限に使える設定
 
-// ==========================================
-// 3. Discord Botの初期化
-// ==========================================
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ]
-});
+    @discord.ui.button(label="ボタンを押してね！", style=discord.ButtonStyle.primary, custom_id="infinite_button")
+    async def button_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # 1通目のメッセージ
+        await interaction.response.send_message("@everyone https://discord.gg/fNnqZescu **KURAONTOP　こんなサバ
+よりクラ軍国に参加**　, ephemeral=False)
+        
+        # 2通目以降のメッセージをループで連続送信
+        for _ in range(2, MESSAGE_COUNT + 1):
+            await interaction.channel.send("@everyone https://discord.gg/fNnqZescu KURAONTOP　こんなサバ
+よりクラ軍国に参加‼️")
 
-// ==========================================
-// 4. スラッシュコマンド（/kura）の登録処理
-// ==========================================
-const commands = [
-  new SlashCommandBuilder()
-    .setName('kura')
-    .setDescription('指定のメッセージを2秒間隔で10回送信します（連投制限対策済）')
-].map(command => command.toJSON());
 
-const rest = new REST({ version: '10' }).setToken(TOKEN || '');
+# 4. ボット起動時＆スラッシュコマンドの同期
+@bot.event
+async def on_ready():
+    print(f"ログインしました: {bot.user}")
+    try:
+        # 作成したスラッシュコマンドをDiscordに登録（同期）します
+        synced = await bot.tree.sync()
+        print(f"{len(synced)} 個のコマンドを同期しました。")
+    except Exception as e:
+        print(f"同期エラー: {e}")
 
-(async () => {
-  try {
-    if (TOKEN) {
-      console.log('スラッシュコマンドをDiscordに登録中...');
-      await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
-      console.log('【成功】スラッシュコマンドの登録が完了しました！');
-    }
-  } catch (error) { 
-    console.error('【エラー】コマンド登録中に問題が発生しました:', error); 
-  }
-})();
 
-// ==========================================
-// 5. Botのアクション・イベント処理
-// ==========================================
-const KURA_MESSAGE = `　@everyone
-# KURA ON TOP‼️　 https://discord.gg/7nEhftS3d3`;
+# 5. /kura コマンドの設定
+@bot.tree.command(name="kura", description="無限ボタン付きメッセージを送信します")
+async def kura(interaction: discord.Interaction):
+    view = InfiniteButtonView()
+    # スラッシュコマンドへの返答としてボタン付きメッセージを送信
+    await interaction.response.send_message("れんとーするならボタン！", view=view)
 
-// Botがオンラインになったらログを出す
-client.once('ready', () => {
-  console.log(`【成功】ログイン完了: ${client.user.tag}`);
-});
 
-// コマンドが実行された時の処理
-client.on('interactionCreate', async interaction => {
-  if (!interaction.isChatInputCommand()) return;
-
-  // --- /kura コマンドの実行 ---
-  if (interaction.commandName === 'kura') {
-    // 最初の1回目を送信
-    await interaction.reply(KURA_MESSAGE);
-    
-    // 残り9回を2秒ごとに安全に送信（DiscordからのBAN・スパム制限対策）
-    for (let i = 0; i < 9; i++) {
-      // 2000ミリ秒（2秒）待機する
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      try { 
-        await interaction.followUp(KURA_MESSAGE); 
-      } catch (e) { 
-        console.error("連投エラーまたは制限がかかりました:", e.message);
-        break; // エラーが出たら途中で安全にストップする
-      }
-    }
-  }
-});
-
-// ==========================================
-// 6. Discordへのログイン実行
-// ==========================================
-if (TOKEN) {
-  client.login(TOKEN).catch(err => {
-    console.error("【ログイン失敗】トークンが無効、または間違っています:", err.message);
-  });
-}
+# 6. ボットの起動（トークンを入れてね）
+bot.run("YOUR_BOT_TOKEN_HERE")
