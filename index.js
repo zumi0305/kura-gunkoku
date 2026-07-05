@@ -1,6 +1,5 @@
 const { Client, GatewayIntentBits, REST, Routes } = require('discord.js');
 
-// 1. ボットの基本設定
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds,
@@ -9,17 +8,12 @@ const client = new Client({
     ] 
 });
 
-// 2. 【設定】送信したいメッセージの総数（6回）
 const MESSAGE_COUNT = 6;
-
-// 3. 送信するメッセージの内容（@everyone付き）
 const SEND_MESSAGE = "@everyone kura ON TOP‼️ https://discord.gg/bgZYs5aZRz";
 
-// Renderの環境変数から読み込み
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID; 
 
-// スラッシュコマンドの設定（/kura）
 const commands = [
     {
         name: 'kura',
@@ -27,17 +21,14 @@ const commands = [
     },
 ];
 
-// ボット起動時＆コマンド登録
+// 待ち時間（ミリ秒）を作るための関数
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 client.once('ready', async () => {
     console.log(`ログインしました: ${client.user.tag}`);
-    
-    if (!TOKEN || !CLIENT_ID) {
-        console.error("【エラー】Renderの環境変数（TOKENまたはCLIENT_ID）が設定されていません。");
-        return;
-    }
+    if (!TOKEN || !CLIENT_ID) return;
 
     const rest = new REST({ version: '10' }).setToken(TOKEN);
-
     try {
         await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
         console.log('スラッシュコマンドの登録に成功しました！');
@@ -46,16 +37,15 @@ client.once('ready', async () => {
     }
 });
 
-// コマンドが打たれた時の処理
 client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
     if (interaction.commandName === 'kura') {
         try {
-            // タイムアウト（Unknown interaction）を防ぐ処理
+            // 3秒ルール対策
             await interaction.deferReply({ ephemeral: false });
 
-            // 1通目：コマンドの返頭として送信
+            // 1通目
             await interaction.editReply({ 
                 content: SEND_MESSAGE, 
                 allowedMentions: { parse: ["everyone"] }
@@ -64,9 +54,10 @@ client.on('interactionCreate', async interaction => {
             const channel = interaction.channel;
             if (!channel) return;
 
-            // 2通目〜6通目：同じメッセージを0秒で一気に送信
+            // 2通目〜6通目：Discordのブロックを回避できる限界の速度（0.6秒間隔）で送信
             for (let i = 2; i <= MESSAGE_COUNT; i++) {
-                channel.send({
+                await sleep(600); // 0.6秒だけ待つ（これより速いとDiscordに消されます）
+                await channel.send({
                     content: SEND_MESSAGE,
                     allowedMentions: { parse: ["everyone"] }
                 }).catch(err => console.error(`${i}通目の送信エラー:`, err));
@@ -78,9 +69,6 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
-// ログイン処理
 if (TOKEN) {
     client.login(TOKEN).catch(err => console.error("ログイン失敗:", err));
-} else {
-    console.error("TOKENが設定されていません。");
 }
