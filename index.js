@@ -1,15 +1,15 @@
 const { Client, GatewayIntentBits, REST, Routes } = require('discord.js');
 
-// 1. ボットの基本設定（メッセージ送信を動かすための重要な設定）
+// 1. ボットの基本設定
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages, // サーバー内のメッセージを扱う設定
-        GatewayIntentBits.MessageContent // メッセージの内容を扱う設定
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
     ] 
 });
 
-// 2. 【設定】/kura コマンド1回につき送信したいメッセージの総数（6回に変更）
+// 2. 【設定】/kura コマンド1回につき送信したいメッセージの総数
 const MESSAGE_COUNT = 6;
 
 // 3. 送信するメッセージの内容
@@ -46,25 +46,26 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.commandName === 'kura') {
         try {
-            // 1通目：コマンドに対する返答として送信
+            // 1通目：コマンドの返頭（reply）として送信
             await interaction.reply({ 
                 content: SEND_MESSAGE, 
                 allowedMentions: { parse: ["everyone"] }
             });
 
-            // 2通目〜6通目：指定したチャンネルに直接メッセージを送信
+            // 取得したチャンネルの情報を確実に使って送るための準備
+            const channel = interaction.channel;
+            if (!channel) return;
+
+            // 2通目〜6通目：【修正ポイント】interactionに頼らず、チャンネルに対して直接送信する
             for (let i = 2; i <= MESSAGE_COUNT; i++) {
-                // interaction.channel が正しく取得できているか確認して送信
-                if (interaction.channel) {
-                    await interaction.channel.send({
-                        content: SEND_MESSAGE,
-                        allowedMentions: { parse: ["everyone"] } // 2回目以降にも毎回everyoneを適用
-                    });
-                }
+                await channel.send({
+                    content: SEND_MESSAGE,
+                    allowedMentions: { parse: ["everyone"] } // 毎回everyoneを有効化
+                }).catch(err => console.error(`${i}通目の送信エラー:`, err));
             }
 
         } catch (error) {
-            console.error("送信エラーが発生しました:", error);
+            console.error("コマンド処理中にエラー:", error);
         }
     }
 });
