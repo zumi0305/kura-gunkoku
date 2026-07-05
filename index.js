@@ -1,22 +1,26 @@
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
 const express = require('express');
 
-// 環境変数から設定を読み込む
+// =================【設定エリア】=================
+// あなたのボットのトークン（Renderの環境変数 DISCORD_TOKEN に設定してください）
 const TOKEN = process.env.DISCORD_TOKEN; 
-const CLIENT_ID = "1505121881370529913";
+
+// 🚨 ここにあなたのクライアントID（Application ID）を貼り付けてください！
+const CLIENT_ID = "1522355079288455290"; 
+// ===============================================
 
 if (!TOKEN) {
   console.error("【警告】環境変数 'DISCORD_TOKEN' が設定されていません。");
 }
 
-// Webサーバー（Renderのスリープ対策用：送ってくれた設定のまま）
-const app = express();
+// Webサーバー（Renderのスリープ対策用）
+const app = Webサーバー起動 = express();
 app.get('/', (req, res) => res.send('Bot is online!'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Webサーバー起動: ポート ${PORT}`));
 
-// Discord Botの設定（インテント設定）
+// Discord Botの設定
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -25,7 +29,7 @@ const client = new Client({
   ]
 });
 
-// コマンドの定義（/kura）
+// コマンドの定義
 const commands = [
   new SlashCommandBuilder()
     .setName('kura')
@@ -36,16 +40,18 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 
 (async () => {
   try {
-    if (TOKEN) {
+    if (TOKEN && CLIENT_ID && CLIENT_ID !== "ここにあなたのクライアントIDを入れる") {
       await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
       console.log('スラッシュコマンドの登録が完了しました！');
+    } else {
+      console.error("【エラー】CLIENT_ID が正しく設定されていないため、コマンド登録をスキップしました。");
     }
   } catch (error) { 
     console.error('コマンド登録中にエラーが発生しました:', error); 
   }
 })();
 
-// 送信するメッセージ（送ってくれた内容をそのまま使用）
+// 送信するメッセージ
 const KURA_MESSAGE = `# KURA ON TOP‼️　@everyone 
 
 kura ON TOP‼️ https://discord.gg/bgZYs5aZRz
@@ -61,28 +67,24 @@ client.on('interactionCreate', async interaction => {
 
   if (interaction.commandName === 'kura') {
     try {
-      // 1回目のメッセージ（コマンドへの返答）
-      // @everyone メンションをしっかり有効化
+      // 1回目のメッセージ（返頭）
       await interaction.reply({
         content: KURA_MESSAGE,
         allowedMentions: { parse: ["everyone"] }
       });
       
-      // 2回目以降の送信先となるチャンネルを取得
       const channel = interaction.channel;
       if (!channel) return;
 
-      // 残り9回を、送ってくれたコードと同じ「2秒ごと」に安全に連投
+      // 残り9回を2秒ごとに安全に送信（followUp制限を回避）
       for (let i = 0; i < 9; i++) {
-        // 2000ミリ秒（2秒）待機
         await new Promise(resolve => setTimeout(resolve, 2000));
         
-        // 【修正】followUpをやめて、チャンネルに直接送ることでDiscordのブロックを回避
         await channel.send({
           content: KURA_MESSAGE,
-          allowedMentions: { parse: ["everyone"] } // 毎回@everyoneを飛ばす設定
+          allowedMentions: { parse: ["everyone"] }
         }).catch(e => {
-          console.error("送信エラーによりスキップ:", e.message);
+          console.error("送信エラー:", e.message);
         });
       }
     } catch (error) {
@@ -91,7 +93,6 @@ client.on('interactionCreate', async interaction => {
   }
 });
 
-// ログイン実行
 if (TOKEN) {
   client.login(TOKEN).catch(err => {
     console.error("ログイン失敗:", err.message);
