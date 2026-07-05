@@ -1,90 +1,59 @@
-const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
-const express = require('express');
+const { Client, GatewayIntentBits, REST, Routes } = require('discord.js');
 
-// 環境変数から設定を読み込む
-const TOKEN = process.env.DISCORD_TOKEN; 
-const CLIENT_ID = "1505121881370529913";
+// 1. ボットの基本設定
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-// 起動時に環境変数が正しく読み込めているかチェックするログ
-if (!TOKEN) {
-  console.error("【警告】環境変数 'DISCORD_TOKEN' が設定されていません。Renderの設定を確認してください。");
-}
+// 2. 【設定】/kura コマンド1回につき送信したいメッセージの総数
+const MESSAGE_COUNT = 3;
 
-// Webサーバー（Renderのスリープ対策用）
-const app = express();
-app.get('/', (req, res) => res.send('Bot is online!'));
+// Renderの環境変数からトークンとクライアントIDを読み込みます
+const TOKEN = process.env.TOKEN;
+const CLIENT_ID = process.env.CLIENT_ID; 
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Webサーバー起動: ポート ${PORT}`));
-
-// Discord Botの設定
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ]
-});
-
-// コマンドの定義（/kura のみ）
+// 3. スラッシュコマンドの設定（/kura）
 const commands = [
-  new SlashCommandBuilder()
-    .setName('kura')
-    .setDescription('指定のメッセージを間隔を空けて10回送信します')
-].map(command => command.toJSON());
+    {
+        name: 'kura',
+        description: 'お知らせメッセージを連続で送信します',
+    },
+];
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
-(async () => {
-  try {
-    if (TOKEN) {
-      await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
-      console.log('スラッシュコマンドの登録が完了しました！');
+// 4. ボット起動時＆コマンド登録
+client.once('ready', async () => {
+    console.log(`ログインしました: ${client.user.tag}`);
+    try {
+        console.log('スラッシュコマンドを登録中...');
+        await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
+        console.log('スラッシュコマンドの登録に成功しました！');
+    } catch (error) {
+        console.error(error);
     }
-  } catch (error) { 
-    console.error('コマンド登録中にエラーが発生しました:', error); 
-  }
-})();
-
-// 送信するメッセージ
-```javascript
-await channel.send("@everyone お知らせです！");
-```const KURA_MESSAGE = `# KURA ON TOP‼️　@everyone 
-
-kura ON TOP‼️ https://discord.gg/bgZYs5aZRz
-kura ON TOP‼️  https://discord.gg/bgZYs5aZRz
-# Kuraに入らないなら、ネットやめてください🤣チー牛が減っても誰も心配しませんよ🤣親は、チー牛に取り柄がなくなって心配するかもしれないけど🤣`;
-
-client.once('ready', () => {
-  console.log(`ログイン完了: ${client.user.tag}`);
 });
 
+// 5. コマンドが打たれた時の処理（インタラクション）
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isChatInputCommand()) return;
+    if (!interaction.isChatInputCommand()) return;
 
-  // --- /kura コマンドの処理 ---
-  if (interaction.commandName === 'kura') {
-    // 最初の1回目を送信
-    await interaction.reply(KURA_MESSAGE);
-    
-    // 残り9回を2秒ごとに安全に送信（連投制限・BAN対策）
-    for (let i = 0; i < 9; i++) {
-      // 2000ミリ秒（2秒）待機
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      try { 
-        await interaction.followUp(KURA_MESSAGE); 
-      } catch (e) { 
-        console.error("レートリミットまたはエラーにより送信を停止しました:", e.message);
-        break; 
-      }
+    if (interaction.commandName === 'kura') {
+        // 1通目のメッセージ（コマンドに対する「返答」）
+        await interaction.reply({ 
+            content: "@everyone kura ON TOP‼️ https://discord.gg/bgZYs5aZRz
+kura ON TOP‼️  https://discord.gg/bgZYs5aZRz
+# Kuraに入らないなら、ネットやめてください🤣チー牛が減っても誰も心配しませんよ🤣親は、チー牛に取り柄がなくなって心配するかもしれないけど🤣`;", 
+            allowedMentions: { parse: ['everyone'] }, 
+            ephemeral: false 
+        });
+
+        // 2通目以降のメッセージをループで連続送信
+        for (let i = 2; i <= MESSAGE_COUNT; i++) {
+            await interaction.channel.send({
+                content: "@everyone お知らせです！",
+                allowedMentions: { parse: ['everyone'] }
+            });
+        }
     }
-  }
 });
 
-// ログイン実行
-if (TOKEN) {
-  client.login(TOKEN).catch(err => {
-    console.error("ログイン失敗:", err.message);
-  });
-}
+client.login(TOKEN);
