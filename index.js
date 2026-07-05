@@ -9,14 +9,14 @@ if (!TOKEN) {
   console.error("【警告】環境変数 'DISCORD_TOKEN' が設定されていません。");
 }
 
-// Webサーバー（Renderのスリープ対策用）
+// Webサーバー（Renderのスリープ対策用：送ってくれた設定のまま）
 const app = express();
 app.get('/', (req, res) => res.send('Bot is online!'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Webサーバー起動: ポート ${PORT}`));
 
-// Discord Botの設定
+// Discord Botの設定（インテント設定）
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -25,7 +25,7 @@ const client = new Client({
   ]
 });
 
-// コマンドの定義
+// コマンドの定義（/kura）
 const commands = [
   new SlashCommandBuilder()
     .setName('kura')
@@ -45,7 +45,7 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
   }
 })();
 
-// 送信するメッセージ
+// 送信するメッセージ（送ってくれた内容をそのまま使用）
 const KURA_MESSAGE = `# KURA ON TOP‼️　@everyone 
 
 kura ON TOP‼️ https://discord.gg/bgZYs5aZRz
@@ -62,25 +62,27 @@ client.on('interactionCreate', async interaction => {
   if (interaction.commandName === 'kura') {
     try {
       // 1回目のメッセージ（コマンドへの返答）
+      // @everyone メンションをしっかり有効化
       await interaction.reply({
         content: KURA_MESSAGE,
-        allowedMentions: { parse: ["everyone"] } // @everyoneを有効化
+        allowedMentions: { parse: ["everyone"] }
       });
       
+      // 2回目以降の送信先となるチャンネルを取得
       const channel = interaction.channel;
       if (!channel) return;
 
-      // 残り9回を2秒ごとに安全に送信
+      // 残り9回を、送ってくれたコードと同じ「2秒ごと」に安全に連投
       for (let i = 0; i < 9; i++) {
-        // 2秒（2000ミリ秒）待機
+        // 2000ミリ秒（2秒）待機
         await new Promise(resolve => setTimeout(resolve, 2000));
         
-        // 【修正】followUpではなく、チャンネルに直接通常メッセージとして送信
+        // 【修正】followUpをやめて、チャンネルに直接送ることでDiscordのブロックを回避
         await channel.send({
           content: KURA_MESSAGE,
-          allowedMentions: { parse: ["everyone"] } // 毎回@everyoneを有効化
+          allowedMentions: { parse: ["everyone"] } // 毎回@everyoneを飛ばす設定
         }).catch(e => {
-          console.error("送信エラー:", e.message);
+          console.error("送信エラーによりスキップ:", e.message);
         });
       }
     } catch (error) {
