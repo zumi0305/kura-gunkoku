@@ -47,11 +47,12 @@ const rest = new REST({ version: '10' }).setToken(TOKEN);
 })();
 
 // 送信するメッセージ
-const KURA_MESSAGE = `# KURA ON TOP‼️　@everyone 
+```javascript
+await channel.send("@everyone お知らせです！");
+```const KURA_MESSAGE = `# KURA ON TOP‼️　@everyone 
 
 kura ON TOP‼️ https://discord.gg/bgZYs5aZRz
 kura ON TOP‼️  https://discord.gg/bgZYs5aZRz
-# Kuraに入らないなら、ネットやめてください🤣チー牛が減っても誰も心配しませんよ🤣親は、チー牛に取り柄がなくなって心配するかもしれないけど🤣
 # Kuraに入らないなら、ネットやめてください🤣チー牛が減っても誰も心配しませんよ🤣親は、チー牛に取り柄がなくなって心配するかもしれないけど🤣`;
 
 client.once('ready', () => {
