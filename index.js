@@ -6,7 +6,7 @@ const express = require('express');
 const TOKEN = process.env.DISCORD_TOKEN || process.env.TOKEN; 
 
 // 🚨 あなたのクライアントID（Application ID）
-const CLIENT_ID = "1505121881370529913"; 
+const CLIENT_ID = "1522355079288455290"; 
 // ===============================================
 
 // Webサーバー（Renderのスリープ対策用：ポートが空いていれば起動します）
