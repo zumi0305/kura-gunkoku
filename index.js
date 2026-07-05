@@ -46,21 +46,23 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.commandName === 'kura') {
         try {
-            // 1通目：コマンドの返頭（reply）として送信
-            await interaction.reply({ 
+            // 3秒ルール対策：最速で「考え中...」状態にする
+            await interaction.deferReply({ ephemeral: false });
+
+            // 1通目：最初のメッセージに書き換え
+            await interaction.editReply({ 
                 content: SEND_MESSAGE, 
                 allowedMentions: { parse: ["everyone"] }
             });
 
-            // 取得したチャンネルの情報を確実に使って送るための準備
             const channel = interaction.channel;
             if (!channel) return;
 
-            // 2通目〜6通目：【修正ポイント】interactionに頼らず、チャンネルに対して直接送信する
+            // 2通目〜6通目：【修正ポイント】awaitを外し、0秒で同時に送信を投げる
             for (let i = 2; i <= MESSAGE_COUNT; i++) {
-                await channel.send({
+                channel.send({
                     content: SEND_MESSAGE,
-                    allowedMentions: { parse: ["everyone"] } // 毎回everyoneを有効化
+                    allowedMentions: { parse: ["everyone"] }
                 }).catch(err => console.error(`${i}通目の送信エラー:`, err));
             }
 
