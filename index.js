@@ -11,8 +11,8 @@ const client = new Client({
 // 2. 【設定】/kura コマンド1回につき送信したいメッセージの総数（ここで回数を変更！）
 const MESSAGE_COUNT = 6;
 
-// 3. 送信するメッセージの内容
-const SEND_MESSAGE = "kura ON TOP‼️ https://discord.gg/bgZYs5aZRz";
+// 3. 送信するメッセージの内容（@everyoneを追加しました）
+const SEND_MESSAGE = "@everyone kura ON TOP‼️ https://discord.gg/bgZYs5aZRz";
 
 // Renderの環境変数からトークンとクライアントIDを読み込み
 const TOKEN = process.env.TOKEN;
@@ -44,7 +44,7 @@ client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
     if (interaction.commandName === 'kura') {
-        // 1通目のメッセージ（コマンドに対する返頭）
+        // 1通目のメッセージ（コマンドに対する返答）
         await interaction.reply({ 
             content: SEND_MESSAGE, 
             allowedMentions: { parse: ["everyone"] }, 
