@@ -4,9 +4,9 @@ const { Client, GatewayIntentBits, REST, Routes } = require('discord.js');
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 // 2. 【設定】/kura コマンド1回につき送信したいメッセージの総数
-const MESSAGE_COUNT = 3;
+const MESSAGE_COUNT = 6;
 
-// Renderの環境変数からトークンとクライアントIDを読み込みます
+// Renderの環境変数からトークンとクライアントIDを読み込み
 const TOKEN = process.env.TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID; 
 
@@ -14,7 +14,7 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const commands = [
     {
         name: 'kura',
-        description: 'お知らせメッセージを連続で送信します',
+        description: 'メッセージを連続で送信します',
     },
 ];
 
@@ -37,12 +37,12 @@ client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
     if (interaction.commandName === 'kura') {
-        // 1通目のメッセージ（コマンドに対する「返答」）
+        // 1通目のメッセージ（コマンドに対する「返頭」として送信）
         await interaction.reply({ 
             content: "@everyone kura ON TOP‼️ https://discord.gg/bgZYs5aZRz
-kura ON TOP‼️  https://discord.gg/bgZYs5aZRz
-# Kuraに入らないなら、ネットやめてください🤣チー牛が減っても誰も心配しませんよ🤣親は、チー牛に取り柄がなくなって心配するかもしれないけど🤣`;", 
-            allowedMentions: { parse: ['everyone'] }, 
+kura ON TOP‼️ 
+# Kuraに入らないなら、ネットやめてください🤣チー牛が減っても誰も心配しませんよ`;！", 
+            allowedMentions: { parse: ["everyone"] }, 
             ephemeral: false 
         });
 
@@ -50,7 +50,7 @@ kura ON TOP‼️  https://discord.gg/bgZYs5aZRz
         for (let i = 2; i <= MESSAGE_COUNT; i++) {
             await interaction.channel.send({
                 content: "@everyone お知らせです！",
-                allowedMentions: { parse: ['everyone'] }
+                allowedMentions: { parse: ["everyone"] }
             });
         }
     }
