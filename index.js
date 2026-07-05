@@ -9,10 +9,10 @@ const client = new Client({
     ] 
 });
 
-// 2. 【設定】/kura コマンド1回につき送信したいメッセージの総数
+// 2. 【設定】送信したいメッセージの総数（6回）
 const MESSAGE_COUNT = 6;
 
-// 3. 送信するメッセージの内容
+// 3. 送信するメッセージの内容（@everyone付き）
 const SEND_MESSAGE = "@everyone kura ON TOP‼️ https://discord.gg/bgZYs5aZRz";
 
 // Renderの環境変数から読み込み
@@ -31,13 +31,11 @@ const commands = [
 client.once('ready', async () => {
     console.log(`ログインしました: ${client.user.tag}`);
     
-    // トークンとクライアントIDが読み込めているかチェック
     if (!TOKEN || !CLIENT_ID) {
-        console.error("【エラー】Renderの環境変数(TOKENまたはCLIENT_ID)が設定されていません。");
+        console.error("【エラー】Renderの環境変数（TOKENまたはCLIENT_ID）が設定されていません。");
         return;
     }
 
-    // RESTインスタンスに確実にトークンをセットする
     const rest = new REST({ version: '10' }).setToken(TOKEN);
 
     try {
@@ -54,10 +52,10 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.commandName === 'kura') {
         try {
-            // 3秒タイムアウト対策
+            // タイムアウト（Unknown interaction）を防ぐ処理
             await interaction.deferReply({ ephemeral: false });
 
-            // 1通目：最初の返答メッセージ
+            // 1通目：コマンドの返頭として送信
             await interaction.editReply({ 
                 content: SEND_MESSAGE, 
                 allowedMentions: { parse: ["everyone"] }
@@ -66,7 +64,7 @@ client.on('interactionCreate', async interaction => {
             const channel = interaction.channel;
             if (!channel) return;
 
-            // 2通目〜6通目：awaitを付けずに0秒で一気に送信を投げる
+            // 2通目〜6通目：同じメッセージを0秒で一気に送信
             for (let i = 2; i <= MESSAGE_COUNT; i++) {
                 channel.send({
                     content: SEND_MESSAGE,
@@ -84,5 +82,5 @@ client.on('interactionCreate', async interaction => {
 if (TOKEN) {
     client.login(TOKEN).catch(err => console.error("ログイン失敗:", err));
 } else {
-    console.error("TOKENがありません。");
+    console.error("TOKENが設定されていません。");
 }
