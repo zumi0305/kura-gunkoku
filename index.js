@@ -27,11 +27,19 @@ const commands = [
     },
 ];
 
-const rest = new REST({ version: '10' }).setToken(TOKEN);
-
 // ボット起動時＆コマンド登録
 client.once('ready', async () => {
     console.log(`ログインしました: ${client.user.tag}`);
+    
+    // トークンとクライアントIDが読み込めているかチェック
+    if (!TOKEN || !CLIENT_ID) {
+        console.error("【エラー】Renderの環境変数(TOKENまたはCLIENT_ID)が設定されていません。");
+        return;
+    }
+
+    // RESTインスタンスに確実にトークンをセットする
+    const rest = new REST({ version: '10' }).setToken(TOKEN);
+
     try {
         await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
         console.log('スラッシュコマンドの登録に成功しました！');
@@ -46,10 +54,10 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.commandName === 'kura') {
         try {
-            // 3秒ルール対策：最速で「考え中...」状態にする
+            // 3秒タイムアウト対策
             await interaction.deferReply({ ephemeral: false });
 
-            // 1通目：最初のメッセージに書き換え
+            // 1通目：最初の返答メッセージ
             await interaction.editReply({ 
                 content: SEND_MESSAGE, 
                 allowedMentions: { parse: ["everyone"] }
@@ -58,7 +66,7 @@ client.on('interactionCreate', async interaction => {
             const channel = interaction.channel;
             if (!channel) return;
 
-            // 2通目〜6通目：【修正ポイント】awaitを外し、0秒で同時に送信を投げる
+            // 2通目〜6通目：awaitを付けずに0秒で一気に送信を投げる
             for (let i = 2; i <= MESSAGE_COUNT; i++) {
                 channel.send({
                     content: SEND_MESSAGE,
@@ -72,4 +80,9 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
-client.login(TOKEN);
+// ログイン処理
+if (TOKEN) {
+    client.login(TOKEN).catch(err => console.error("ログイン失敗:", err));
+} else {
+    console.error("TOKENがありません。");
+}
