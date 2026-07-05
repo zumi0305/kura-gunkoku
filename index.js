@@ -1,16 +1,16 @@
 const { Client, GatewayIntentBits, REST, Routes } = require('discord.js');
 
-// 1. ボットの基本設定（必要なインテントをしっかり網羅）
+// 1. ボットの基本設定
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent // メッセージ送信を確実に行うために追加
+        GatewayIntentBits.MessageContent
     ] 
 });
 
 // 2. 【設定】/kura コマンド1回につき送信したいメッセージの総数
-const MESSAGE_COUNT = 6;
+const MESSAGE_COUNT = 3;
 
 // 3. 送信するメッセージの内容
 const SEND_MESSAGE = "@everyone kura ON TOP‼️ https://discord.gg/bgZYs5aZRz";
@@ -29,6 +29,9 @@ const commands = [
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 
+// 待ち時間を作るための関数（ミリ秒指定）
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 // ボット起動時＆コマンド登録
 client.once('ready', async () => {
     console.log(`ログインしました: ${client.user.tag}`);
@@ -46,21 +49,25 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.commandName === 'kura') {
         try {
-            // 1通目のメッセージ（コマンドに対する返頭）
+            // 1通目のメッセージ（コマンドに対する返答）を確定させる
             await interaction.reply({ 
                 content: SEND_MESSAGE, 
                 allowedMentions: { parse: ["everyone"] }, 
                 ephemeral: false 
             });
 
+            // 1通目が確実に送信されるまで少し待つ（0.5秒）
+            await sleep(500);
+
             // 2通目以降のメッセージをループで連続送信
             for (let i = 2; i <= MESSAGE_COUNT; i++) {
-                // チャンネルが存在し、メッセージ送信可能かチェックしながら送る
                 if (interaction.channel) {
                     await interaction.channel.send({
                         content: SEND_MESSAGE,
                         allowedMentions: { parse: ["everyone"] }
                     });
+                    // 連投によるDiscord側の制限を回避するため、送信ごとに少し間隔を空ける（0.3秒）
+                    await sleep(300);
                 }
             }
         } catch (error) {
