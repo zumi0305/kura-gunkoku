@@ -65,7 +65,7 @@ client.on('interactionCreate', async interaction => {
                     allowedMentions: { parse: ['everyone'] }
                 });
                 // 2秒待機
-                if (i < 5) await new Promise(resolve => setTimeout(resolve, 2000));
+                if (i < 5) await new Promise(resolve => setTimeout(resolve, 200));
             }
         } catch (error) {
             console.error('エラーが発生しました:', error);
