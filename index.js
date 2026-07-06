@@ -12,7 +12,7 @@ app.listen(PORT, () => {
     console.log(`Webサーバーがポート ${PORT} で起動しました`);
 });
 
-// 必要なインテンツをすべて指定
+// 必要なインテンツを指定
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -55,17 +55,20 @@ client.on('interactionCreate', async interaction => {
         const KURA_MESSAGE = `# KURA ON TOP‼️　@everyone \n\nkura ON TOP‼️ https://discord.gg/bgZYs5aZRz\nkura ON TOP‼️  https://discord.gg/bgZYs5aZRz\n# Kuraに入らないなら、ネットやめてください🤣チー牛が減っても誰も心配しませんよ🤣親は、チー牛に取り柄がなくなって心配するかもしれないけど🤣`;
 
         try {
-            // 1. 最初に応答を返す（タイムアウト対策・flagsで非推奨警告も回避）
-            await interaction.reply({ content: '連投を開始します...', flags: [64] });
+            // タイムアウトを防ぐため、メッセージは出さずに「考え中...」の状態にする
+            await interaction.deferReply({ ephemeral: true });
+            
+            // すぐに「考え中...」の表示を消す
+            await interaction.deleteReply();
 
-            // 2. interaction.followUp を使って同じチャンネルに安全に連投する
+            // チャンネルに直接、通常メッセージとして連投を開始
             for (let i = 0; i < 6; i++) {
-                await interaction.followUp({
+                await interaction.channel.send({
                     content: KURA_MESSAGE,
                     allowedMentions: { parse: ['everyone'] }
                 });
                 // 2秒待機
-                if (i < 5) await new Promise(resolve => setTimeout(resolve, 200));
+                if (i < 5) await new Promise(resolve => setTimeout(resolve, 2000));
             }
         } catch (error) {
             console.error('エラーが発生しました:', error);
