@@ -30,7 +30,6 @@ const commands = [
 
 const token = process.env.DISCORD_TOKEN;
 
-// 警告を回避するため clientReady を使用
 client.once('clientReady', async () => {
     console.log(`ログイン完了: ${client.user.tag}`);
     
@@ -55,13 +54,12 @@ client.on('interactionCreate', async interaction => {
         const KURA_MESSAGE = `# KURA ON TOP‼️　@everyone \n\nkura ON TOP‼️ https://discord.gg/bgZYs5aZRz\nkura ON TOP‼️  https://discord.gg/bgZYs5aZRz\n# Kuraに入らないなら、ネットやめてください🤣チー牛が減っても誰も心配しませんよ🤣親は、チー牛に取り柄がなくなって心配するかもしれないけど🤣`;
 
         try {
-            // タイムアウトを防ぐため、メッセージは出さずに「考え中...」の状態にする
-            await interaction.deferReply({ ephemeral: true });
-            
-            // すぐに「考え中...」の表示を消す
-            await interaction.deleteReply();
+            // 【修正点】Discordに「コマンドは無事成功した（メッセージは何も出さない）」と1秒で即レスする
+            // これにより、チャンネルがフリーズしたり文字が打てなくなったりするのを防ぎます
+            await interaction.reply({ content: '実行しました', ephemeral: true });
+            await interaction.deleteReply(); // 自分にしか見えない「実行しました」を即消去
 
-            // チャンネルに直接、通常メッセージとして連投を開始
+            // バックグラウンドでチャンネルに直接連投を開始
             for (let i = 0; i < 6; i++) {
                 await interaction.channel.send({
                     content: KURA_MESSAGE,
