@@ -12,13 +12,12 @@ app.listen(PORT, () => {
     console.log(`Webサーバーがポート ${PORT} で起動しました`);
 });
 
-// Discordのインテンツ（権限）を確実にすべて受け取る設定
+// 必要なインテンツをすべて指定
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMessageReactions
+        GatewayIntentBits.MessageContent
     ]
 });
 
@@ -31,7 +30,7 @@ const commands = [
 
 const token = process.env.DISCORD_TOKEN;
 
-// 警告を解決するため 'clientReady' を使用
+// 警告を回避するため clientReady を使用
 client.once('clientReady', async () => {
     console.log(`ログイン完了: ${client.user.tag}`);
     
@@ -56,17 +55,17 @@ client.on('interactionCreate', async interaction => {
         const KURA_MESSAGE = `# KURA ON TOP‼️　@everyone \n\nkura ON TOP‼️ https://discord.gg/bgZYs5aZRz\nkura ON TOP‼️  https://discord.gg/bgZYs5aZRz\n# Kuraに入らないなら、ネットやめてください🤣チー牛が減っても誰も心配しませんよ🤣親は、チー牛に取り柄がなくなって心配するかもしれないけど🤣`;
 
         try {
-            // 1. まずDiscordに「コマンドを受け付けた」という返事を返す（タイムアウト対策）
-            await interaction.reply({ content: '連投を開始します...', ephemeral: true });
+            // 1. 最初に応答を返す（タイムアウト対策・flagsで非推奨警告も回避）
+            await interaction.reply({ content: '連投を開始します...', flags: [64] });
 
-            // 2. チャンネルに通常メッセージとして連投
+            // 2. interaction.followUp を使って同じチャンネルに安全に連投する
             for (let i = 0; i < 6; i++) {
-                await interaction.channel.send({
+                await interaction.followUp({
                     content: KURA_MESSAGE,
                     allowedMentions: { parse: ['everyone'] }
                 });
                 // 2秒待機
-                if (i < 5) await new Promise(resolve => setTimeout(resolve, 2000));
+                if (i < 5) await new Promise(resolve => setTimeout(resolve, 200));
             }
         } catch (error) {
             console.error('エラーが発生しました:', error);
