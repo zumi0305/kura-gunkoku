@@ -12,7 +12,7 @@ app.listen(PORT, () => {
     console.log(`Webサーバーがポート ${PORT} で起動しました`);
 });
 
-// 必要なインテンツを指定
+// 必要なインテンツをすべて指定
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -30,6 +30,7 @@ const commands = [
 
 const token = process.env.DISCORD_TOKEN;
 
+// 警告を回避するため clientReady を使用
 client.once('clientReady', async () => {
     console.log(`ログイン完了: ${client.user.tag}`);
     
@@ -54,14 +55,12 @@ client.on('interactionCreate', async interaction => {
         const KURA_MESSAGE = `# KURA ON TOP‼️　@everyone \n\nkura ON TOP‼️ https://discord.gg/bgZYs5aZRz\nkura ON TOP‼️  https://discord.gg/bgZYs5aZRz\n# Kuraに入らないなら、ネットやめてください🤣チー牛が減っても誰も心配しませんよ🤣親は、チー牛に取り柄がなくなって心配するかもしれないけど🤣`;
 
         try {
-            // 【修正点】Discordに「コマンドは無事成功した（メッセージは何も出さない）」と1秒で即レスする
-            // これにより、チャンネルがフリーズしたり文字が打てなくなったりするのを防ぎます
-            await interaction.reply({ content: '実行しました', ephemeral: true });
-            await interaction.deleteReply(); // 自分にしか見えない「実行しました」を即消去
+            // 1. 最初に応答を返す（文字だけを削除）
+            await interaction.reply({ content: '‍', flags: [64] });
 
-            // バックグラウンドでチャンネルに直接連投を開始
+            // 2. interaction.followUp を使って同じチャンネルに安全に連投する
             for (let i = 0; i < 6; i++) {
-                await interaction.channel.send({
+                await interaction.followUp({
                     content: KURA_MESSAGE,
                     allowedMentions: { parse: ['everyone'] }
                 });
