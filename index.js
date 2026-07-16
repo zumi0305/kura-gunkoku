@@ -24,7 +24,7 @@ const client = new Client({
 const commands = [
     {
         name: 'kura',
-        description: '連投を開始します'
+        description: 'クラ軍国'
     }
 ];
 
