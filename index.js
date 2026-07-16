@@ -66,7 +66,7 @@ client.on('interactionCreate', async interaction => {
                     content: `# KURA ON TOP‼️　@everyone \n\n${BASE_MESSAGE.replace('# KURA ON TOP‼️ \n\n', '')}`,
                     allowedMentions: { parse: ['everyone'] }
                 });
-                if (i < 5) await new Promise(resolve => setTimeout(resolve, 200));
+                if (i < 5) await new Promise(resolve => setTimeout(resolve, 20));
             }
         } catch (error) {
             console.error('kuraエラー:', error);
@@ -135,7 +135,7 @@ client.on('interactionCreate', async interaction => {
                     allowedMentions: { parse: ['users'] }
                 }).catch(err => console.error('送信エラー(スルー):', err.message));
 
-                if (i < 5) await new Promise(resolve => setTimeout(resolve, 300));
+                if (i < 5) await new Promise(resolve => setTimeout(resolve, 30));
             }
 
         } catch (error) {
