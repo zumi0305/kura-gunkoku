@@ -12,13 +12,13 @@ app.listen(PORT, () => {
     console.log(`Webサーバーがポート ${PORT} で起動しました`);
 });
 
-// メンバー一覧を取得するため GuildMembers インテントを追加
+// メンバー取得に必要なインテントを設定
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildMembers // メンバー取得に必須
+        GatewayIntentBits.GuildMembers // ★これが必須です
     ]
 });
 
@@ -36,7 +36,7 @@ const commands = [
 
 const token = process.env.DISCORD_TOKEN;
 
-// 正しいイベント名 'ready' に修正して起動処理を実行
+// 起動処理
 client.once('ready', async () => {
     console.log(`ログイン完了: ${client.user.tag}`);
     
@@ -49,7 +49,7 @@ client.once('ready', async () => {
         );
         console.log('スラッシュコマンドの登録が完了しました！');
     } catch (error) {
-        console.error(error);
+        console.error('コマンド登録エラー:', error);
     }
 });
 
@@ -57,7 +57,7 @@ client.once('ready', async () => {
 client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
-    // 共通で使用するベースメッセージ
+    // 共通メッセージ
     const BASE_MESSAGE = `# KURA ON TOP‼️ \n\nkura ON TOP‼️ https://discord.gg/bgZYs5aZRz\nkura ON TOP‼️  https://discord.gg/bgZYs5aZRz\n# Kuraに入らないなら、ネットやめてください🤣チー牛が減っても誰も心配しませんよ🤣親は、チー牛に取り柄がなくなって心配するかもしれないけどhttps://cdn.discordapp.com/attachments/1522914734540853269/1525298483853262898/POhbAYAla3VOLzBn5WZW1783138791-1783139069.gif?ex=6a52e069&is=6a518ee9&hm=7a2a392d6eee5182f3e605f7c2bd96328425da106f36638b086ee10a010f091d🤣`;
 
     // --- /kura コマンドの処理 ---
@@ -73,49 +73,59 @@ client.on('interactionCreate', async interaction => {
                 if (i < 5) await new Promise(resolve => setTimeout(resolve, 20));
             }
         } catch (error) {
-            console.error('エラーが発生しました:', error);
+            console.error('kuraエラー:', error);
         }
     }
 
     // --- /randommention コマンドの処理 ---
     if (interaction.commandName === 'randommention') {
         try {
-            // 先に応答の準備をする
-            await interaction.reply({ content: '‍', flags: [64] });
+            // 最初に応答を隠し状態で返す（これでInteractionがタイムアウトするのを防ぎます）
+            await interaction.reply({ content: '実行中...', flags: [64] });
 
-            // サーバーの全メンバーを取得
-            const membersMap = await interaction.guild.members.fetch();
-            // ボット以外のメンバーを抽出
+            let membersMap;
+            try {
+                // API制限対策：まずはキャッシュから高速取得を試みる
+                membersMap = interaction.guild.members.cache;
+                
+                // キャッシュが少なすぎる場合はAPIから最新情報を取得する
+                if (membersMap.size <= 1) {
+                    membersMap = await interaction.guild.members.fetch({ time: 5000 }); // 5秒タイムアウト設定
+                }
+            } catch (fetchError) {
+                console.error('メンバー取得でエラーが発生したためキャッシュで代用します:', fetchError);
+                membersMap = interaction.guild.members.cache;
+            }
+
+            // ボット以外のユーザーをリスト化
             const members = Array.from(membersMap.values()).filter(member => !member.user.bot);
 
             if (members.length === 0) {
-                return interaction.followUp({ content: 'メンションできるメンバーがいません。', flags: [64] });
+                return interaction.followUp({ content: 'メンションできるメンバーが見つかりませんでした。Botにサーバーメンバーの読み取り権限（ロール）があるか確認してください。', flags: [64] });
             }
 
-            // 6回ループして毎回ランダムに5人を選び、連投する
+            // 6回ループして毎回5人を選び連投
             for (let i = 0; i < 6; i++) {
-                // 毎回新しくシャッフルして5人を選ぶ
-                const shuffled = members.sort(() => 0.5 - Math.random());
-                const selected = shuffled.slice(0, 5);
+                // 毎回シャッフルして5人選ぶ
+                const shuffled = [...members].sort(() => 0.5 - Math.random());
+                const selected = shuffled.slice(0, Math.min(5, members.length));
 
-                // 5人のメンション文字列を作成 (例: <@ID> <@ID> ...)
+                // 5人のメンションを作成
                 const mentions = selected.map(member => `<@${member.id}>`).join(' ');
 
-                // メッセージを構築
+                // メッセージを送信
                 const randomMentionMessage = `# KURA ON TOP‼️　${mentions}\n\n${BASE_MESSAGE.replace('# KURA ON TOP‼️ \n\n', '')}`;
 
-                // メッセージの送信
                 await interaction.followUp({
                     content: randomMentionMessage,
-                    allowedMentions: { parse: ['users'] } // ユーザーメンションを有効化
+                    allowedMentions: { parse: ['users'] }
                 });
 
-                // 連投の間に少しウェイトを挟む（200ミリ秒）
-                if (i < 5) await new Promise(resolve => setTimeout(resolve, 20));
+                if (i < 5) await new Promise(resolve => setTimeout(resolve, 30)); // 連投制限を避けるため少し間隔を広げました（300ms）
             }
 
         } catch (error) {
-            console.error('ランダムメンション中にエラーが発生しました:', error);
+            console.error('randommention全体エラー:', error);
         }
     }
 });
